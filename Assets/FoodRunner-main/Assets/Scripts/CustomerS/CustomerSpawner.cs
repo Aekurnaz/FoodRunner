@@ -7,49 +7,55 @@ namespace CustomerS
 {
     public class CustomerSpawner : MonoBehaviour
     {
-        [SerializeField] private Table[] _tablePos;
-        [SerializeField] private GameObject _customer;
-        [SerializeField] private bool _canSpawn;
-        public int TableId;
-        // Start is called before the first frame update
+        [SerializeField] GameObject _customer;
+        [SerializeField] Table[] _tables;
+        [SerializeField] bool _canSpawn;
+        [SerializeField] Vector3 _spawnPoint;
+        [SerializeField] float _spawnTimer;
+        [SerializeField] private float _spawnTime = 0;
+
         private void Awake()
         {
-            for(int i = 0;  i < _tablePos.Length; i++)
+            for(int i=0; i< _tables.Length; i++)
             {
-                _tablePos[i].IsTableAvaible = true;
+                _tables[i].IsTableAvaible = true;
             }
         }
-        void Start()
-        {
-            StartCoroutine(CustomerSpawnerr());
-        }
-
-        // Update is called once per frame
         void Update()
         {
-            CheckAvaibleTable();
+            CheckTables();
+            TimerCount();
+            CheckSpawn();
         }
 
-        IEnumerator  CustomerSpawnerr()
+        private void CheckTables()
         {
-            while (_canSpawn)
+            for (int i = 0; i < _tables.Length; i++)
             {
-                    Instantiate(_customer, new Vector3(-48, 0, -41), Quaternion.identity);
-                    _canSpawn = false;
-                    yield return new WaitForSeconds(5f);
-            }
-        }
-
-        private void CheckAvaibleTable()
-        {
-            for(int i=0; i< _tablePos.Length; i++)
-            {
-                if (_tablePos[i].IsTableAvaible)
+                if (_tables[i].IsTableAvaible == true && _spawnTime <= 0)
                 {
+                    _spawnTime = _spawnTimer;
                     _canSpawn = true;
                     break;
                 }
-                else { }
+                else { continue; }
+
+            }
+        }
+
+        private void TimerCount()
+        {
+            if (_spawnTime > 0)
+            {
+                _spawnTime -= Time.deltaTime;
+            }
+        }
+        private void CheckSpawn()
+        {
+            if (_canSpawn == true && _spawnTime <= 0)
+            {
+                Instantiate(_customer, _spawnPoint, Quaternion.identity);
+                _canSpawn = false;
             }
         }
     }

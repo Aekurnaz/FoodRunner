@@ -5,17 +5,20 @@ using UnityEngine.AI;
 using CustomerS;
 using Players;
 using System;
+using DG.Tweening;
+using UnityEngine.UI;
 
 namespace CustomerS
 {
     public class Customer : MonoBehaviour
     {
-        
-
+        public  event Action<float> TimerCallBack;
+        public event Action<int> EarnPoint;
         [SerializeField] private Table[] _tables;
         [SerializeField] private Food[] _foods;
         private int _rand;
         public int Foodindex { get => _rand + 1; }
+        private GameObject _randFood;
         private CustomerSpawner _spawner;
         private NavMeshAgent _customer;
         private int _tableIndex;
@@ -23,6 +26,7 @@ namespace CustomerS
         [Header("Customer's Behaviours")]
         private bool _isArrive;
         [SerializeField] private bool _isSitting;
+        public bool Sitting { get => _isSitting; }
         private bool _isStartCounting;
         [SerializeField] private float _waitTimeToGiveOrder;
         [SerializeField] private float _waitTimerToGiveOrder;
@@ -41,12 +45,17 @@ namespace CustomerS
         [SerializeField] private float _eatTime;
         [SerializeField] private float _eatTimer;
 
+        private Animator _anim;
+
+        [Header("Images")]
+        private Image _image;
         private void Awake()
         {
             _spawner = GetComponent<CustomerSpawner>();
             _customer = GetComponent<NavMeshAgent>();
             _boxCollider = GetComponent<CapsuleCollider>();
             _rand = UnityEngine.Random.Range(0, _foods.Length);
+            _anim = GetComponent<Animator>();
         }
         void Start()
         {
@@ -60,6 +69,15 @@ namespace CustomerS
             WaitToGiveOrder();
             WaitingForOrder();
             Eating();
+
+            if(_isSitting )
+            {
+                _anim.SetBool("Sitting", true);
+            }
+            else
+            {
+                _anim.SetBool("Sitting", false);
+            }
         }
 
         private void CustomerMovement()
@@ -74,7 +92,6 @@ namespace CustomerS
                          _tableIndex = i;
                          break;
                      }
-                     else { continue; }
                  }
                 
             }
@@ -98,7 +115,7 @@ namespace CustomerS
                 if(_isArrive && !_isOrderTaken)
                 {
                     _orderTakenTimer = _orderTakenTime;
-                    _isArrive = false;
+                    
                 }
                 else if(_isOrderTaken && (_playerr.IsCarryCookedFood || _playerr.IsCarryUnCookedFood))
                 {
@@ -122,28 +139,45 @@ namespace CustomerS
                         if(_playerr.FoodID == Foodindex)
                         {
                             _isOrderTrue = true;
+                            _randFood.transform.localPosition = _randFood.transform.localPosition + new Vector3(0, -6, 5);
+                            _randFood.transform.localScale = new Vector3(7,7, 7);
+                            _randFood.SetActive(true);
                         }
                         else
                         {
+                            Debug.Log("yanlýs siparis");
                             _isSitting = false;
                             _isOrderTrue = false;
                             //leave as angry
                             _boxCollider.enabled = false;
                             _customer.obstacleAvoidanceType = 0;
+                            transform.position += new Vector3(-1, 0, -1);
+                            _customer.SetDestination(new Vector3(-44, 0, -40));
+                            Destroy(this.gameObject, 5);
+                            Destroy(_randFood);
                         }
                     }
                 }
             }
         }
 
+        
         private void WaitToGiveOrder()
         {
             if (!_isOrderTaken && _isSitting && !_isStartCounting)
             {
                 _isStartCounting = true;
                 _waitTimerToGiveOrder = _waitTimeToGiveOrder;
-                var _randFood = Instantiate(_foods[_rand]._Food);
-                _randFood.transform.localPosition += transform.position + new Vector3(0, 5, 0);
+                if (TimerCallBack == null)
+                {
+                    Debug.Log("Null");
+                }
+                else
+                {
+                    TimerCallBack.Invoke(_waitTimerToGiveOrder);
+                }
+                _randFood = Instantiate(_foods[_rand]._Food);
+                _randFood.transform.localPosition += transform.position + new Vector3(0, 10, 0);
             }
             else if(!_isOrderTaken && _isStartCounting && _waitTimerToGiveOrder >0)
             {
@@ -155,6 +189,9 @@ namespace CustomerS
                 //leave as angry
                 _boxCollider.enabled = false;
                 _customer.obstacleAvoidanceType = 0;
+                _customer.SetDestination(new Vector3(-44, 0, -40));
+                Destroy(this.gameObject, 5);
+                Destroy(_randFood);
             }
         }
         private void TakingOrder()
@@ -166,8 +203,19 @@ namespace CustomerS
             else if (_orderTakenTimer < 0)
             {
                 _isOrderTaken = true;
-                _orderArriveWaitTimer = 0;
+                _randFood.SetActive(false);
+                _orderTakenTimer = 0;
                 _orderArriveWaitTimer = _orderArriveWaitTime;
+                if (TimerCallBack == null)
+                {
+                    Debug.Log("Null");
+                }
+                else
+                {
+
+                    TimerCallBack.Invoke(_orderArriveWaitTime);
+                }
+
             }
         }
         private void WaitingForOrder()
@@ -182,6 +230,9 @@ namespace CustomerS
                 //Customer leaves as Angry
                 _boxCollider.enabled = false;
                 _customer.obstacleAvoidanceType = 0;
+                _customer.SetDestination(new Vector3(-44, 0, -40));
+                Destroy(this.gameObject, 5);
+                Destroy(_randFood);
             }
         }
 
@@ -202,6 +253,14 @@ namespace CustomerS
             if(_isOrderTrue && _eatTimer == 0 && !_didEat)
             {
                 _eatTimer = _eatTime;
+                if (TimerCallBack == null)
+                {
+                    Debug.Log("Null");
+                }
+                else
+                {
+                    TimerCallBack.Invoke(_eatTime);
+                }
             }
             else if(_eatTimer > 0)
             {
@@ -214,7 +273,13 @@ namespace CustomerS
                 _isSitting = false;
                 transform.position += new Vector3(-1, 0, -1);
                 _customer.SetDestination(new Vector3(-44,0,-40));
+                Destroy(this.gameObject,5);
+               // Destroy(_randFood);
             }
+        }
+        private void OnDestroy()
+        {
+            _tables[_tableIndex].IsTableAvaible = true;
         }
     }
 

@@ -10,6 +10,9 @@ namespace Players
 {
 public class Player : MonoBehaviour
 {
+    public event Action Carry;
+    public event Action NotCarry;
+
     [SerializeField] Fridge _fridge;
     [SerializeField] Own _own;
     [SerializeField] Customer _customer;
@@ -25,8 +28,8 @@ public class Player : MonoBehaviour
     public bool IsCarryUnCookedFood
         {get => _isCarryUnCookedFood;
         }
-
-        private void OnTriggerStay(Collider other)
+       
+        private void OnTriggerExit(Collider other)
         {
             if(other.TryGetComponent(out Customer _customer))
             {
@@ -35,6 +38,7 @@ public class Player : MonoBehaviour
                     _foodId = 0;
                     _isCarryCookedFood = false;
                     _isCarryUnCookedFood = false;
+                    NotCarry?.Invoke();
                 }
             }
         }
@@ -63,22 +67,26 @@ public class Player : MonoBehaviour
         private void CarryUnCookedFood()
         {
             _isCarryUnCookedFood = true;
+            Carry?.Invoke();
         }
 
         private void NotCarryUnCookedFood()
         {
             _isCarryUnCookedFood = false;
             _foodId = 0;
+            NotCarry?.Invoke();
         }
 
         private void CarryCookedFood()
         {
             _isCarryCookedFood = true;
+            Carry?.Invoke();
         }
         private void NotCarryCookedFood()
         {
             _isCarryCookedFood = false;
             _foodId = 0;
+            NotCarry?.Invoke();
         }
         private void HotDogId()
         {

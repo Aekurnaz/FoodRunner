@@ -9,6 +9,7 @@ namespace Kitchen
 {
 public class Own : MonoBehaviour
 {
+    public event Action<float> TimerCallBack;
     public event Action CookedCallBack;
     public event Action CollectedCallBack;
     public event Action CarryUnCookedFood;
@@ -32,8 +33,11 @@ public class Own : MonoBehaviour
     [SerializeField] private Fridge _fridge;
     [SerializeField ] private Player _player;
 
+    
+
         
         private void Update() {
+        
         Cooking();
         }
     private void OnTriggerEnter(Collider other) {
@@ -42,11 +46,13 @@ public class Own : MonoBehaviour
             if(_player.IsCarryUnCookedFood && (!_isCooking && !_cooked))
             {
                 _playerToOwnTimer = _playerToOwnTime;
+                TimerCallBack?.Invoke(_playerToOwnTime);
             }
             else if(_cooked ==true && !_player.IsCarryUnCookedFood && !_player.IsCarryCookedFood)
             {
-                _collectedFoodTimer = _collectedFoodTime;   
-            }
+                _collectedFoodTimer = _collectedFoodTime;
+                    TimerCallBack?.Invoke(_playerToOwnTime);
+                }
         }
     }
     private void OnTriggerStay(Collider other) {
@@ -63,8 +69,16 @@ public class Own : MonoBehaviour
             }
         }
     }
+        private void OnTriggerExit(Collider other)
+        {
+            if(other.TryGetComponent(out Player _))
+            {
+                _collectedFoodTimer = 0;
+                _playerToOwnTimer = 0;
+            }
+        }
 
-    private void Cooking()
+        private void Cooking()
     {
         if(_isCooking == true)
         {
@@ -87,6 +101,7 @@ public class Own : MonoBehaviour
         if(_collectedFoodTimer > 0 )
             {
                 _collectedFoodTimer -= Time.deltaTime;
+                
             }
             else if(_collectedFoodTimer < 0 && _cooked)
             {
@@ -120,5 +135,6 @@ public class Own : MonoBehaviour
              
         }
     }
+       
 }
 }
