@@ -165,8 +165,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6eb4587245181204d9d8e37ed6ba48f0, type: 2}
   - {fileID: 11400000, guid: 11576e137165eef4f986fa37be3530db, type: 2}
   - {fileID: 11400000, guid: f40eddd7d2e7f8847a743ed7b67fd41a, type: 2}
+  _points: {fileID: 11400000, guid: 44da41afdcb246a46814754d5af28e7f, type: 2}
+  _missingCustomer: {fileID: 11400000, guid: a5f7b9b7ad8d1e443b8b1695d5bf40cd, type: 2}
   _isSitting: 0
-  _waitTimeToGiveOrder: 10
+  _waitTimeToGiveOrder: 25
   _waitTimerToGiveOrder: 0
   _isOrderTaken: 0
   _orderTakenTime: 2
